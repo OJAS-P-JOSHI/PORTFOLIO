@@ -1,67 +1,90 @@
+"use client";
 import { Spotlight } from "./ui/Spotlight";
-import linkednlnImage from "../public/ojas.png";
-import Image from "next/image";
 import { FlipWords } from "./ui/FlipWords";
 import ShootingStars from "./ui/ShootingStars";
-import dynamic from "next/dynamic";
-
-const ContainerScroll = dynamic(
-  () =>
-    import("./ui/container-scroll-animation").then(
-      (data) => data.ContainerScroll
-    ),
-  {
-    loading: () => <p>Loading...</p>,
-  }
-);
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 
 const Hero = () => {
-  const words = ["better", "responsive", "beautiful", "modern"];
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end start"], 
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
+  const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+  const words = ["innovative", "scalable", "intelligent", "modern"];
+
   return (
-    <div className="relative pt-36">
+    <div ref={ref} className="relative min-h-screen pt-24 antialiased">
+      {/* Background effects */}
       <div>
         <Spotlight
-          className="-top-40 -left-10 md:-left-32 md:-top-20"
+          className="-top-40 left-0 md:-left-20 md:-top-20"
           fill="white"
         />
-        <Spotlight className="top-40 left-full h-[80vh] w-[50vw]" fill="blue" />
-      </div>
-      <div
-        className="h-screen w-full dark:bg-portfolio-100 bg-white dark:bg-grid-white/[0.03] bg-grid-black-100/[0.2]
-       absolute top-0 left-0 flex items-center justify-center"
-      >
-        <div
-          className="absolute pointer-events-none inset-0 flex items-center justify-center dark:bg-portfolio-100
-         bg-white [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"
+        <Spotlight
+          className="top-40 left-full h-[80vh] w-[50vw]"
+          fill="rgba(125, 125, 255, 0.5)"
         />
       </div>
-      <div className="flex flex-col overflow-hidden z-10">
-        <ContainerScroll
-          titleComponent={
-            <>
-              <h1 className="text-4xl font-semibold text-neutral-600 dark:text-neutral-400">
-                Build <FlipWords words={words} /> websites & apps with <br />
-                <span
-                  className="text-4xl md:text-[6rem] font-bold mt-1 leading-none animate-gradient text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-yellow-200 dark:via-yellow-300 dark:to-yellow-400"
-                  style={{ fontFamily: "Gumela, sans-serif" }}
-                >
-                  OJAS P JOSHI
-                </span>
-              </h1>
-            </>
-          }
+
+      {/* Main content */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <motion.div
+          style={{ y, opacity }}
+          className="relative z-10 px-4"
         >
-          <Image
-            src={linkednlnImage}
-            alt="hero"
-            height={720}
-            width={1400}
-            className="mx-auto rounded-2xl object-cover h-full object-left-top"
-            draggable={false}
-            priority
-          />
-        </ContainerScroll>
+          {/* Content */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="relative flex flex-col items-center space-y-8"
+          >
+            {/* Title */}
+            <h1 className="text-4xl font-medium tracking-tight text-center">
+              <span className="block text-neutral-500 dark:text-neutral-400">
+                Building <FlipWords words={words} /> solutions with
+              </span>
+              <motion.span
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="relative block text-6xl md:text-[8rem] font-bold mt-4 leading-none tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-indigo-400 via-purple-600 to-pink-500"
+              >
+                OJAS P JOSHI
+              </motion.span>
+            </h1>
+
+            {/* Description */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+              className="max-w-3xl mx-auto"
+            >
+              <p className="p-6 text-lg md:text-xl text-center text-neutral-700 dark:text-neutral-300 leading-relaxed">
+                Final-year B.Tech student in Computer Science specializing in{" "}
+                <span className="font-semibold text-purple-600 dark:text-purple-400">
+                  AI/ML
+                </span>
+                . Building scalable applications with{" "}
+                <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                  MERN stack
+                </span>
+                . Exploring fintech solutions and personal finance tools. Passionate about{" "}
+                <span className="font-semibold text-pink-600 dark:text-pink-400">
+                  AI-driven innovation
+                </span>
+                .
+              </p>
+            </motion.div>
+          </motion.div>
+        </motion.div>
       </div>
+
       <ShootingStars />
     </div>
   );
