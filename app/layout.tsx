@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./provider";
+import AnimatedCursor from "@/components/ui/AnimatedCursor";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,13 +18,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} dark:bg-portfolio-100`}>
+      <body className={`${inter.className} dark:bg-portfolio-100 cursor-none`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
+          <AnimatedCursor />
           {children}
         </ThemeProvider>
       </body>
