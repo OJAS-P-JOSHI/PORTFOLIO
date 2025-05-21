@@ -14,8 +14,8 @@ const AnimatedPointer = () => {
 
   useEffect(() => {
     const moveCursor = (e: MouseEvent) => {
-      cursorX.set(e.clientX - 16);
-      cursorY.set(e.clientY - 16);
+      cursorX.set(e.clientX - 20); // Adjusted from 16 to 20 (half of outer ring width)
+      cursorY.set(e.clientY - 20); // Adjusted from 16 to 20 (half of outer ring height)
     };
 
     const handleMouseEnter = (e: Event) => {
@@ -65,9 +65,8 @@ const AnimatedPointer = () => {
           y: cursorYSpring,
         }}
       >
-        {/* Outer glow ring */}
         <motion.div
-          className="w-10 h-10 rounded-full"
+          className="w-10 h-10 rounded-full flex items-center justify-center"
           style={{
             backgroundColor: "rgba(147, 51, 234, 0.05)",
             boxShadow: "0 0 15px 3px rgba(147, 51, 234, 0.3)",
@@ -75,17 +74,17 @@ const AnimatedPointer = () => {
           animate={{
             scale: isHovered.current ? 1.5 : 1,
           }}
-        />
-        {/* Inner cursor */}
-        <motion.div
-          className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
-          style={{
-            boxShadow: "0 0 10px 2px rgba(147, 51, 234, 0.5)",
-          }}
-          animate={{
-            scale: isPressed.current ? 0.8 : 1,
-          }}
-        />
+        >
+          <motion.div
+            className="w-3 h-3 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
+            style={{
+              boxShadow: "0 0 10px 2px rgba(147, 51, 234, 0.5)",
+            }}
+            animate={{
+              scale: isPressed.current ? 0.8 : 1,
+            }}
+          />
+        </motion.div>
       </motion.div>
     </>
   );
