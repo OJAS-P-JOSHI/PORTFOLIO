@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./provider";
 import AnimatedPointer from "@/components/ui/AnimatedPointer";
+import ThemeWrapper from "@/components/ThemeWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,8 +26,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AnimatedPointer />
-          {children}
+          <ThemeWrapper>
+            <AnimatedPointer />
+            {children}
+          </ThemeWrapper>
         </ThemeProvider>
       </body>
     </html>

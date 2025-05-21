@@ -1,107 +1,133 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 
 const AnimatedCursor = () => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
-  const [trailingPoints, setTrailingPoints] = useState<{ x: number; y: number }[]>([]);
+  const cursorX = useMotionValue(-100);
+  const cursorY = useMotionValue(-100);
+  const [trails, setTrails] = useState<Array<{
+    id: number;
+    x: number;
+    y: number;
+    angle: number;
+    color: string;
+  }>>([]);
+
+  const springConfig = { damping: 20, stiffness: 900, mass: 0.1 };
+  const cursorXSpring = useSpring(cursorX, springConfig);
+  const cursorYSpring = useSpring(cursorY, springConfig);
+
+  // Theme colors matching your portfolio
+  const colors = [
+    "from-indigo-500 via-purple-500 to-pink-500",
+    "from-purple-600 via-pink-500 to-indigo-500",
+    "from-blue-500 via-purple-500 to-pink-500"
+  ];
 
   useEffect(() => {
-    const updateMousePosition = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-      setTrailingPoints(prev => {
-        const newPoints = [...prev, { x: e.clientX, y: e.clientY }];
-        return newPoints.slice(-5);
-      });
+    let frameId: number;
+    let lastTrailTime = 0;
+
+    const updateCursor = (e: MouseEvent) => {
+      cursorX.set(e.clientX - 16);
+      cursorY.set(e.clientY - 16);
+
+      const now = Date.now();
+      if (now - lastTrailTime > 50) { // Adjust trail frequency
+        const randomAngle = Math.random() * 360;
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        
+        setTrails(prev => [
+          ...prev,
+          {
+            id: now,
+            x: e.clientX,
+            y: e.clientY,
+            angle: randomAngle,
+            color: randomColor
+          }
+        ].slice(-20)); // Keep last 20 trails
+
+        lastTrailTime = now;
+      }
     };
 
-    const handleHoverStart = () => setIsHovering(true);
-    const handleHoverEnd = () => setIsHovering(false);
+    const render = () => {
+      setTrails(prev => 
+        prev.filter(trail => Date.now() - trail.id < 500) // Remove old trails
+      );
+      frameId = requestAnimationFrame(render);
+    };
 
-    window.addEventListener("mousemove", updateMousePosition);
-    document.querySelectorAll("a, button").forEach(element => {
-      element.addEventListener("mouseenter", handleHoverStart);
-      element.addEventListener("mouseleave", handleHoverEnd);
-    });
+    window.addEventListener("mousemove", updateCursor);
+    frameId = requestAnimationFrame(render);
 
     return () => {
-      window.removeEventListener("mousemove", updateMousePosition);
-      document.querySelectorAll("a, button").forEach(element => {
-        element.removeEventListener("mouseenter", handleHoverStart);
-        element.removeEventListener("mouseleave", handleHoverEnd);
-      });
+      window.removeEventListener("mousemove", updateCursor);
+      cancelAnimationFrame(frameId);
     };
   }, []);
 
   return (
     <>
-      {/* Trailing dots */}
-      {trailingPoints.map((point, i) => (
+      {/* Shooting star trails */}
+      {trails.map((trail) => (
         <motion.div
-          key={i}
-          className="fixed z-[9999] pointer-events-none w-1 h-1 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
-          initial={{ opacity: 0.5, scale: 1 }}
+          key={trail.id}
+          className="fixed z-[99998] pointer-events-none"
+          initial={{ 
+            opacity: 0.8,
+            scale: 1,
+            x: trail.x,
+            y: trail.y,
+            rotate: trail.angle 
+          }}
           animate={{
             opacity: 0,
             scale: 0,
-            x: point.x - 2,
-            y: point.y - 2,
+            x: trail.x + (Math.random() - 0.5) * 100,
+            y: trail.y + (Math.random() - 0.5) * 100,
           }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-        />
+        >
+          <div 
+            className={`h-3 w-3 rounded-full bg-gradient-to-r ${trail.color}`}
+            style={{
+              boxShadow: '0 0 10px 2px rgba(147, 51, 234, 0.3)',
+              transform: 'scale(0.3)'
+            }}
+          />
+        </motion.div>
       ))}
 
       {/* Main cursor */}
       <motion.div
-        className="fixed z-[9999] pointer-events-none"
-        animate={{
-          x: mousePosition.x - 16,
-          y: mousePosition.y - 16,
-          transition: {
-            type: "spring",
-            mass: 0.1,
-            stiffness: 800,
-            damping: 20,
-          },
+        className="fixed z-[99999] pointer-events-none"
+        style={{
+          x: cursorXSpring,
+          y: cursorYSpring,
         }}
       >
-        <div className="relative">
-          {/* Outer glow */}
+        <motion.div 
+          className="w-8 h-8 rounded-full relative"
+          style={{
+            background: 'rgba(147, 51, 234, 0.1)',
+            backdropFilter: 'blur(4px)',
+            boxShadow: '0 0 20px 4px rgba(147, 51, 234, 0.2)'
+          }}
+        >
           <motion.div
-            className="absolute inset-0 rounded-full blur-md bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-50"
+            className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-50"
             animate={{
-              scale: isHovering ? 1 : 0.5,
+              rotate: 360
             }}
-            style={{
-              width: "40px",
-              height: "40px",
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "linear"
             }}
           />
-          
-          {/* Main ring */}
-          <motion.div
-            className="w-8 h-8 rounded-full border border-white"
-            style={{
-              background: "rgba(255, 255, 255, 0.1)",
-              backdropFilter: "blur(4px)",
-            }}
-            animate={{
-              scale: isHovering ? 1.5 : 1,
-              borderWidth: isHovering ? "1px" : "2px",
-            }}
-            transition={{ duration: 0.15 }}
-          />
-
-          {/* Center dot */}
-          <motion.div
-            className="absolute top-1/2 left-1/2 w-1 h-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
-            animate={{
-              scale: isHovering ? 0 : 1,
-            }}
-            transition={{ duration: 0.15 }}
-          />
-        </div>
+        </motion.div>
       </motion.div>
     </>
   );

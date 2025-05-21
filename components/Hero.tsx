@@ -9,15 +9,20 @@ const Hero = () => {
 
   return (
     <div className="relative min-h-screen pt-24 antialiased">
-      {/* Background effects */}
-      <div>
-        <Spotlight
-          className="-top-40 left-0 md:-left-20 md:-top-20"
-          fill="white"
-        />
-        <Spotlight
-          className="top-40 left-full h-[80vh] w-[50vw]"
-          fill="rgba(125, 125, 255, 0.5)"
+      {/* Background gradient overlay */}
+      <div className="absolute inset-0 z-0">
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: `radial-gradient(
+              100% 100% at 50% 0%,
+              rgba(139, 92, 246, 0.07) 0%,
+              rgba(59, 130, 246, 0.05) 30%,
+              transparent 70%
+            )`,
+          }}
+          className="bg-gradient-radial from-purple-500/10 via-transparent to-transparent"
         />
       </div>
 

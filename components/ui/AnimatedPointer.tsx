@@ -18,31 +18,39 @@ const AnimatedPointer = () => {
       cursorY.set(e.clientY - 16);
     };
 
-    const handleMouseDown = () => (isPressed.current = true);
-    const handleMouseUp = () => (isPressed.current = false);
-    const handleMouseEnter = () => (isHovered.current = true);
-    const handleMouseLeave = () => (isHovered.current = false);
+    const handleMouseEnter = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('button, a, .nav-item')) {
+        isHovered.current = true;
+      }
+    };
+
+    const handleMouseLeave = () => {
+      isHovered.current = false;
+    };
 
     window.addEventListener("mousemove", moveCursor);
-    window.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("mouseup", handleMouseUp);
 
     const interactiveElements = document.querySelectorAll(
-      'a, button, input, [role="button"]'
+      'a, button, .nav-item, [role="button"]'
     );
 
     interactiveElements.forEach((el) => {
-      el.addEventListener("mouseenter", handleMouseEnter);
-      el.addEventListener("mouseleave", handleMouseLeave);
+      el.addEventListener("mouseenter", handleMouseEnter as EventListener);
+      el.addEventListener("mouseleave", handleMouseLeave as EventListener);
+      // Add hover effect without scale
+      if (el.classList.contains('nav-item')) {
+        el.classList.add('transition-colors', 'duration-200');
+      } else {
+        el.classList.add('hover:scale-105', 'transition-transform', 'duration-200');
+      }
     });
 
     return () => {
       window.removeEventListener("mousemove", moveCursor);
-      window.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("mouseup", handleMouseUp);
       interactiveElements.forEach((el) => {
-        el.removeEventListener("mouseenter", handleMouseEnter);
-        el.removeEventListener("mouseleave", handleMouseLeave);
+        el.removeEventListener("mouseenter", handleMouseEnter as EventListener);
+        el.removeEventListener("mouseleave", handleMouseLeave as EventListener);
       });
     };
   }, []);
