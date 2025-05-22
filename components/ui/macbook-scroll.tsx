@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { MotionValue, motion, useScroll, useTransform } from "framer-motion";
+import { MotionValue, motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
   IconBrightnessDown,
@@ -42,77 +42,157 @@ export const MacbookScroll = ({
     offset: ["start start", "end start"]
   });
 
-  const [isMobile, setIsMobile] = useState(false);
+  const [dimensions, setDimensions] = useState({ 
+    width: 0, 
+    height: 0, 
+    scale: 1 
+  });
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+    const updateDimensions = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      // Calculate optimal scale based on screen width
+      const scale = width < 480 ? 0.5 : 
+                   width < 768 ? 0.65 : 
+                   width < 1024 ? 0.8 : 1;
+      
+      setDimensions({ width, height, scale });
     };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+
+    updateDimensions();
+    window.addEventListener('resize', updateDimensions);
+    return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-  // Modify transform values for better mobile visibility
+  // Optimized transform values for mobile
   const scaleX = useTransform(
     scrollYProgress,
     [0, 0.3],
-    [isMobile ? 1 : 1.2, isMobile ? 2 : 1.5]
+    [dimensions.scale * 0.8, dimensions.scale * 1.2]
   );
+  
   const scaleY = useTransform(
     scrollYProgress,
     [0, 0.3],
-    [isMobile ? 1 : 0.6, isMobile ? 2 : 1.5]
+    [dimensions.width < 768 ? dimensions.scale * 0.9 : dimensions.scale * 0.6,
+     dimensions.width < 768 ? dimensions.scale * 1.1 : dimensions.scale * 1.2]
   );
+
   const translate = useTransform(
     scrollYProgress,
     [0, 1],
-    [0, isMobile ? 500 : 1500]
+    [0, dimensions.width < 768 ? 250 : 400]
   );
+
   const rotate = useTransform(
     scrollYProgress,
-    [0.1, 0.12, 0.3],
-    [-28, -28, isMobile ? 0 : 0]
+    [0, 0.3],
+    [dimensions.width < 768 ? -15 : -25,
+     dimensions.width < 768 ? -5 : 0]
+  );
+
+  const isNearEnd = useTransform(
+    scrollYProgress,
+    [0.8, 0.9, 1],
+    [0, 1, 1]
+  );
+
+  const envelopeScale = useTransform(
+    scrollYProgress,
+    [0.8, 0.9, 1],
+    [0, 1, 1.2]
+  );
+
+  const envelopeRotate = useTransform(
+    scrollYProgress,
+    [0.8, 0.9, 1],
+    [0, -15, -30]
   );
 
   return (
-    <div
+    <motion.div
       ref={ref}
-      className="min-h-[120vh] md:min-h-[160vh] flex flex-col items-center py-0 md:py-24 justify-start flex-shrink-0 [perspective:800px] transform scale-[0.95] sm:scale-[0.9] md:scale-100 origin-top"
+      className={cn(
+        "relative min-h-[100vh] md:min-h-[140vh]",
+        "flex flex-col items-center",
+        "py-8 md:py-16",
+        "justify-start flex-shrink-0",
+        "[perspective:1000px]",
+        "transform origin-top"
+      )}
+      style={{
+        scale: dimensions.scale
+      }}
     >
-      {/* Lid */}
-      <Lid
-        src={src}
-        scaleX={scaleX}
-        scaleY={scaleY}
-        rotate={rotate}
-        translate={translate}
-      />
-      {/* Base area */}
-      <div className="h-[22rem] w-[32rem] bg-gray-200 dark:bg-[#272729] rounded-2xl overflow-hidden relative -z-10">
-        {/* above keyboard bar */}
-        <div className="h-10 w-full relative">
-          <div className="absolute inset-x-0 mx-auto w-[80%] h-4 bg-[#050505]" />
+      <AnimatePresence>
+        {/* Envelope Animation */}
+        <motion.div
+          className="absolute bottom-0 w-full h-full pointer-events-none"
+          style={{
+            opacity: isNearEnd,
+            scale: envelopeScale,
+            rotateX: envelopeRotate,
+          }}
+        >
+          <div className="absolute bottom-0 w-full h-[60vh] bg-gradient-to-t from-purple-500/20 to-transparent" />
+          <div className="absolute bottom-0 w-full h-[40vh] flex items-end justify-center pb-20">
+            <motion.div
+              className="w-[300px] h-[200px] bg-gradient-to-br from-purple-600 to-purple-800 rounded-lg shadow-xl"
+              initial={{ rotateX: 0 }}
+              animate={{ rotateX: [-20, 0, -20], y: [0, -20, 0] }}
+              transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
+            >
+              {/* Envelope Flap */}
+              <motion.div
+                className="w-full h-[100px] origin-bottom"
+                style={{
+                  background: "linear-gradient(135deg, #9333EA 0%, #581C87 100%)",
+                  clipPath: "polygon(0 100%, 50% 0, 100% 100%)",
+                }}
+                animate={{ rotateX: [0, 180, 0] }}
+                transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
+              />
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* Existing MacBook Lid */}
+        <Lid
+          src={src}
+          scaleX={scaleX}
+          scaleY={scaleY}
+          rotate={rotate}
+          translate={translate}
+          opacity={useTransform(scrollYProgress, [0, 0.8], [1, 0])}
+        />
+        
+        {/* Existing Base area */}
+        <div className="h-[22rem] w-[32rem] bg-gray-200 dark:bg-[#272729] rounded-2xl overflow-hidden relative -z-10">
+          {/* above keyboard bar */}
+          <div className="h-10 w-full relative">
+            <div className="absolute inset-x-0 mx-auto w-[80%] h-4 bg-[#050505]" />
+          </div>
+          <div className="flex relative">
+            <div className="mx-auto w-[10%] overflow-hidden  h-full">
+              <SpeakerGrid />
+            </div>
+            <div className="mx-auto w-[80%] h-full">
+              <Keypad />
+            </div>
+            <div className="mx-auto w-[10%] overflow-hidden  h-full">
+              <SpeakerGrid />
+            </div>
+          </div>
+          <Trackpad />
+          <div className="h-2 w-20 mx-auto inset-x-0 absolute bottom-0 bg-gradient-to-t from-[#272729] to-[#050505] rounded-tr-3xl rounded-tl-3xl" />
+          {showGradient && (
+            <div className="h-40 w-full absolute bottom-0 inset-x-0 bg-gradient-to-t dark:from-black from-white via-white dark:via-black to-transparent z-50"></div>
+          )}
+          {badge && <div className="absolute bottom-4 left-4">{badge}</div>}
         </div>
-        <div className="flex relative">
-          <div className="mx-auto w-[10%] overflow-hidden  h-full">
-            <SpeakerGrid />
-          </div>
-          <div className="mx-auto w-[80%] h-full">
-            <Keypad />
-          </div>
-          <div className="mx-auto w-[10%] overflow-hidden  h-full">
-            <SpeakerGrid />
-          </div>
-        </div>
-        <Trackpad />
-        <div className="h-2 w-20 mx-auto inset-x-0 absolute bottom-0 bg-gradient-to-t from-[#272729] to-[#050505] rounded-tr-3xl rounded-tl-3xl" />
-        {showGradient && (
-          <div className="h-40 w-full absolute bottom-0 inset-x-0 bg-gradient-to-t dark:from-black from-white via-white dark:via-black to-transparent z-50"></div>
-        )}
-        {badge && <div className="absolute bottom-4 left-4">{badge}</div>}
-      </div>
-    </div>
+      </AnimatePresence>
+    </motion.div>
   );
 };
 
@@ -121,13 +201,15 @@ export const Lid = ({
   scaleY,
   rotate,
   translate,
-  src
+  src,
+  opacity
 }: {
   scaleX: MotionValue<number>;
   scaleY: MotionValue<number>;
   rotate: MotionValue<number>;
   translate: MotionValue<number>;
   src?: string;
+  opacity: MotionValue<number>;
 }) => {
   return (
     <div className="relative [perspective:800px]">
@@ -153,9 +235,10 @@ export const Lid = ({
           rotateX: rotate,
           translateY: translate,
           transformStyle: "preserve-3d",
-          transformOrigin: "top"
+          transformOrigin: "top",
+          opacity,
         }}
-        className="h-96 w-[32rem] absolute inset-0 bg-[#010101] rounded-2xl p-2"
+        className="h-80 md:h-96 w-[32rem] absolute inset-0 bg-[#010101] rounded-2xl p-2"
       >
         <div className="absolute inset-0 bg-[#272729] rounded-lg" />
         <Image
@@ -163,8 +246,8 @@ export const Lid = ({
           alt="Resume Preview"
           fill
           priority
-          className="object-contain absolute rounded-lg inset-0 h-full w-full p-1"
-          sizes="(max-width: 768px) 200vw, (max-width: 1200px) 100vw, 70vw"
+          className="object-contain absolute rounded-lg inset-0 h-full w-full p-2"
+          sizes="(max-width: 480px) 95vw, (max-width: 768px) 85vw, 70vw"
         />
       </motion.div>
     </div>
