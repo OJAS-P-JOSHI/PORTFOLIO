@@ -6,13 +6,13 @@ import { AnimatedBeam } from "./ui/AnimatedBeam";
 
 export default function Experience() {
   return (
-    <section className="bg-white dark:bg-gray-800" id="experience">
-      <div className="max-w-6xl mx-auto h-40 bg-white dark:bg-gray-800">
+    <section className="bg-transparent" id="experience">
+      <div className="max-w-6xl mx-auto h-40">
         <h1 className=" text-5xl md:text-8xl font-bold py-20 text-center md:text-left">
           Experience
         </h1>
       </div>
-      <div className="bg-[#F1F1F1] dark:bg-gray-900 -mt-3">
+      <div className="-mt-3">
         <div className="grid grid-cols-1 dark:bg-gray-900 max-w-xl mx-auto pt-28 px-2">
           {/* Experience card */}
           {experiences.map((exp, idx) => (
@@ -51,10 +51,7 @@ const ExperienceCard = ({
   img
 }: any) => {
   return (
-    <div
-      className="relative border p-4 rounded-md shadow-xl bg-white dark:bg-gray-800 z-10 mx-4 hover:translate-x-2 transition duration-200"
-      key={idx}
-    >
+    <div className="relative border p-4 rounded-md backdrop-blur-sm bg-white/5 dark:bg-gray-800/5 z-10 mx-4 hover:translate-x-2 transition duration-200">
       <h1 className="absolute -top-10 md:-left-10 md:-top-11 text-4xl text-gray-200 font-bold dark:text-gray-700">
         {year}
       </h1>

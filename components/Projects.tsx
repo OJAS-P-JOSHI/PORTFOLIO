@@ -6,19 +6,13 @@ import Image from "next/image";
 const Projects = () => {
   return (
     <>
-      <section
-        id="projects"
-        className="bg-white dark:bg-gray-800 mx-2 md:mx-0 my-8 mt-10"
-      >
-        <div className="max-w-6xl mx-auto h-40 bg-white dark:bg-gray-800">
+      <section id="projects" className="bg-transparent mx-2 md:mx-0 my-8 mt-10">
+        <div className="max-w-6xl mx-auto h-40">
           <h1 className="text-5xl md:text-8xl font-bold py-20 text-center md:text-left">
             Projects
           </h1>
         </div>
-        <div
-          className="bg-[#F1F1F1] dark:bg-gray-900 -mt-3 py-10"
-          style={{ minHeight: "80vh" }} // Setting adequate height
-        >
+        <div className="-mt-3 py-10" style={{ minHeight: "80vh" }}>
           <HoverEffect items={projects} />
         </div>
       </section>
