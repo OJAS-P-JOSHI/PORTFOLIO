@@ -45,28 +45,40 @@ export const MacbookScroll = ({
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    if (window && window.innerWidth < 768) {
-      setIsMobile(true);
-    }
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Modify transform values for better mobile visibility
   const scaleX = useTransform(
     scrollYProgress,
     [0, 0.3],
-    [1.2, isMobile ? 1 : 1.5]
+    [isMobile ? 1 : 1.2, isMobile ? 2 : 1.5]
   );
   const scaleY = useTransform(
     scrollYProgress,
     [0, 0.3],
-    [0.6, isMobile ? 1 : 1.5]
+    [isMobile ? 1 : 0.6, isMobile ? 2 : 1.5]
   );
-  const translate = useTransform(scrollYProgress, [0, 1], [0, 1500]);
-  const rotate = useTransform(scrollYProgress, [0.1, 0.12, 0.3], [-28, -28, 0]);
+  const translate = useTransform(
+    scrollYProgress,
+    [0, 1],
+    [0, isMobile ? 500 : 1500]
+  );
+  const rotate = useTransform(
+    scrollYProgress,
+    [0.1, 0.12, 0.3],
+    [-28, -28, isMobile ? 0 : 0]
+  );
 
   return (
     <div
       ref={ref}
-      className="min-h-[160vh]  hidden md:flex flex-col items-center py-0 md:py-24 justify-start flex-shrink-0 [perspective:800px] transform md:scale-100  scale-[0.35] sm:scale-50"
+      className="min-h-[120vh] md:min-h-[160vh] flex flex-col items-center py-0 md:py-24 justify-start flex-shrink-0 [perspective:800px] transform scale-[0.95] sm:scale-[0.9] md:scale-100 origin-top"
     >
       {/* Lid */}
       <Lid
@@ -148,9 +160,11 @@ export const Lid = ({
         <div className="absolute inset-0 bg-[#272729] rounded-lg" />
         <Image
           src={src as string}
-          alt="aceternity logo"
+          alt="Resume Preview"
           fill
-          className="object-contain  absolute rounded-lg inset-0 h-full w-full"
+          priority
+          className="object-contain absolute rounded-lg inset-0 h-full w-full p-1"
+          sizes="(max-width: 768px) 200vw, (max-width: 1200px) 100vw, 70vw"
         />
       </motion.div>
     </div>
@@ -621,27 +635,6 @@ export const OptionKey = ({ className }: { className: string }) => {
         width="32"
         height="32"
         stroke="none"
-      />
-    </svg>
-  );
-};
-
-const AceternityLogo = () => {
-  return (
-    <svg
-      width="66"
-      height="65"
-      viewBox="0 0 66 65"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="h-3 w-3 text-white"
-    >
-      <path
-        d="M8 8.05571C8 8.05571 54.9009 18.1782 57.8687 30.062C60.8365 41.9458 9.05432 57.4696 9.05432 57.4696"
-        stroke="currentColor"
-        strokeWidth="15"
-        strokeMiterlimit="3.86874"
-        strokeLinecap="round"
       />
     </svg>
   );

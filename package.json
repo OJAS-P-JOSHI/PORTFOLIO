@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -14,7 +14,7 @@
     "@tabler/icons-react": "^3.11.0",
     "@types/lodash": "^4.17.7",
     "clsx": "^2.1.1",
-    "framer-motion": "^11.3.19",
+    "framer-motion": "^12.12.1",
     "gsap": "^3.12.5",
     "koustav": "file:",
     "lodash": "^4.17.21",
