@@ -5,7 +5,12 @@ import { ThemeProvider } from "./provider";
 import AnimatedPointer from "@/components/ui/AnimatedPointer";
 import ThemeWrapper from "@/components/ThemeWrapper";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  preload: true,
+});
 
 export const metadata: Metadata = {
   title: "Ojas's Portfolio",
