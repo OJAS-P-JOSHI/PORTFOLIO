@@ -1,9 +1,9 @@
 "use client";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, memo } from "react";
 import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-export const FlipWords = ({
+export const FlipWords = memo(({
   words,
   duration = 3000,
   className
@@ -14,6 +14,7 @@ export const FlipWords = ({
 }) => {
   const [currentWord, setCurrentWord] = useState(words[0]);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  const timeoutRef = useRef<NodeJS.Timeout>();
 
   const startAnimation = useCallback(() => {
     const word = words[words.indexOf(currentWord) + 1] || words[0];
@@ -22,18 +23,24 @@ export const FlipWords = ({
   }, [currentWord, words]);
 
   useEffect(() => {
-    if (!isAnimating)
-      setTimeout(() => {
+    if (!isAnimating) {
+      timeoutRef.current = setTimeout(() => {
         startAnimation();
       }, duration);
+    }
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, [isAnimating, duration, startAnimation]);
 
+  const handleExitComplete = useCallback(() => {
+    setIsAnimating(false);
+  }, []);
+
   return (
-    <AnimatePresence
-      onExitComplete={() => {
-        setIsAnimating(false);
-      }}
-    >
+    <AnimatePresence onExitComplete={handleExitComplete}>
       <motion.div
         initial={{
           opacity: 0,
@@ -79,4 +86,6 @@ export const FlipWords = ({
       </motion.div>
     </AnimatePresence>
   );
-};
+});
+
+FlipWords.displayName = 'FlipWords';

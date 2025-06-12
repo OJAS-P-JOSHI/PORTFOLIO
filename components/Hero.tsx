@@ -3,25 +3,29 @@ import { Spotlight } from "./ui/Spotlight";
 import { FlipWords } from "./ui/FlipWords";
 import ShootingStars from "./ui/ShootingStars";
 import { motion } from "framer-motion";
+import { memo, useMemo } from "react";
+import { CSSProperties } from "react";
 
-const Hero = () => {
-  const words = ["innovative", "scalable", "intelligent", "modern"];
+const Hero = memo(() => {
+  const words = useMemo(() => ["innovative", "scalable", "intelligent", "modern"], []);
+
+  const gradientStyle: CSSProperties = useMemo(() => ({
+    position: "absolute",
+    inset: 0,
+    background: `radial-gradient(
+      100% 100% at 50% 0%,
+      rgba(139, 92, 246, 0.07) 0%,
+      rgba(59, 130, 246, 0.05) 30%,
+      transparent 70%
+    )`,
+  }), []);
 
   return (
     <div className="relative min-h-screen pt-24 antialiased">
       {/* Background gradient overlay */}
       <div className="absolute inset-0 z-0">
         <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: `radial-gradient(
-              100% 100% at 50% 0%,
-              rgba(139, 92, 246, 0.07) 0%,
-              rgba(59, 130, 246, 0.05) 30%,
-              transparent 70%
-            )`,
-          }}
+          style={gradientStyle}
           className="bg-gradient-radial from-purple-500/10 via-transparent to-transparent"
         />
       </div>
@@ -78,6 +82,8 @@ const Hero = () => {
       <ShootingStars />
     </div>
   );
-};
+});
+
+Hero.displayName = 'Hero';
 
 export default Hero;

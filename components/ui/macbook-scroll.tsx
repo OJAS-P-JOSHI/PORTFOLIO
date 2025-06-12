@@ -25,6 +25,11 @@ import { IconCaretLeftFilled } from "@tabler/icons-react";
 import { IconCaretDownFilled } from "@tabler/icons-react";
 import Image from "next/image";
 
+interface ScrollInfo {
+  height: number;
+  offset: number;
+}
+
 export const MacbookScroll = ({
   src,
   showGradient,
@@ -37,61 +42,82 @@ export const MacbookScroll = ({
   badge?: React.ReactNode;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start start", "end start"]
+    offset: ["start start", "end end"]
   });
 
-  const [dimensions, setDimensions] = useState({ 
-    width: 0, 
-    height: 0, 
-    scale: 1 
+  const [viewportData, setViewportData] = useState({
+    width: 0,
+    height: 0,
+    contentHeight: 0,
+    isMobile: false,
+    scrollOffset: {
+      start: "start",
+      end: "end"
+    }
   });
 
   useEffect(() => {
-    const updateDimensions = () => {
+    const updateViewport = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
-      // Calculate optimal scale based on screen width
-      const scale = width < 480 ? 0.5 : 
-                   width < 768 ? 0.65 : 
-                   width < 1024 ? 0.8 : 1;
+      const contentHeight = contentRef.current?.scrollHeight || 0;
+      const isMobile = width < 768;
       
-      setDimensions({ width, height, scale });
+      setViewportData({
+        width,
+        height,
+        contentHeight,
+        isMobile,
+        scrollOffset: {
+          start: isMobile ? "-20%" : "start",
+          end: isMobile ? "80%" : "end"
+        }
+      });
     };
 
-    updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
+    updateViewport();
+    window.addEventListener('resize', updateViewport);
+    return () => window.removeEventListener('resize', updateViewport);
   }, []);
 
-  // Optimized transform values for mobile
+  // Earlier trigger points for mobile
   const scaleX = useTransform(
     scrollYProgress,
-    [0, 0.3],
-    [dimensions.scale * 0.8, dimensions.scale * 1.2]
+    [0, 0.1, 0.25],
+    [
+      viewportData.isMobile ? 0.65 : 1.2,
+      viewportData.isMobile ? 0.85 : 1.3,
+      viewportData.isMobile ? 1.1 : 1.5
+    ]
   );
-  
+
   const scaleY = useTransform(
     scrollYProgress,
-    [0, 0.3],
-    [dimensions.width < 768 ? dimensions.scale * 0.9 : dimensions.scale * 0.6,
-     dimensions.width < 768 ? dimensions.scale * 1.1 : dimensions.scale * 1.2]
+    [0, 0.1, 0.25],
+    [
+      viewportData.isMobile ? 0.8 : 0.6,
+      viewportData.isMobile ? 1.1 : 1.3,
+      viewportData.isMobile ? 1.3 : 1.5
+    ]
   );
 
   const translate = useTransform(
     scrollYProgress,
-    [0, 1],
-    [0, dimensions.width < 768 ? 250 : 400]
+    [0, 0.5, 1],
+    [0, viewportData.isMobile ? 150 : 400, viewportData.isMobile ? 300 : 800]
   );
 
   const rotate = useTransform(
     scrollYProgress,
-    [0, 0.3],
-    [dimensions.width < 768 ? -15 : -25,
-     dimensions.width < 768 ? -5 : 0]
+    [0, 0.1, 0.25],
+    viewportData.isMobile ? [-20, -10, 0] : [-25, -15, 0]
   );
 
+  // Add these variables with the other transform values
   const isNearEnd = useTransform(
     scrollYProgress,
     [0.8, 0.9, 1],
@@ -101,29 +127,27 @@ export const MacbookScroll = ({
   const envelopeScale = useTransform(
     scrollYProgress,
     [0.8, 0.9, 1],
-    [0, 1, 1.2]
+    [0.5, 1, 1.1]
   );
 
   const envelopeRotate = useTransform(
     scrollYProgress,
     [0.8, 0.9, 1],
-    [0, -15, -30]
+    [0, -15, -25]
   );
 
   return (
     <motion.div
       ref={ref}
       className={cn(
-        "relative min-h-[100vh] md:min-h-[140vh]",
+        "relative",
+        viewportData.isMobile ? "min-h-[140vh]" : "min-h-[160vh]",
         "flex flex-col items-center",
-        "py-8 md:py-16",
+        "py-8 md:py-24",
         "justify-start flex-shrink-0",
         "[perspective:1000px]",
         "transform origin-top"
       )}
-      style={{
-        scale: dimensions.scale
-      }}
     >
       <AnimatePresence>
         {/* Envelope Animation */}
@@ -159,12 +183,14 @@ export const MacbookScroll = ({
 
         {/* Existing MacBook Lid */}
         <Lid
+          contentRef={contentRef}
           src={src}
           scaleX={scaleX}
           scaleY={scaleY}
           rotate={rotate}
           translate={translate}
           opacity={useTransform(scrollYProgress, [0, 0.8], [1, 0])}
+          isMobile={viewportData.isMobile}
         />
         
         {/* Existing Base area */}
@@ -196,21 +222,16 @@ export const MacbookScroll = ({
   );
 };
 
-export const Lid = ({
-  scaleX,
-  scaleY,
-  rotate,
-  translate,
-  src,
-  opacity
-}: {
+export const Lid = React.forwardRef<HTMLDivElement, {
+  contentRef: React.RefObject<HTMLDivElement>;
   scaleX: MotionValue<number>;
   scaleY: MotionValue<number>;
   rotate: MotionValue<number>;
   translate: MotionValue<number>;
   src?: string;
   opacity: MotionValue<number>;
-}) => {
+  isMobile: boolean;
+}>(({ contentRef, scaleX, scaleY, rotate, translate, src, opacity, isMobile }, ref) => {
   return (
     <div className="relative [perspective:800px]">
       <div
@@ -229,30 +250,43 @@ export const Lid = ({
         ></div>
       </div>
       <motion.div
+        ref={ref}
         style={{
-          scaleX: scaleX,
-          scaleY: scaleY,
+          scaleX,
+          scaleY,
           rotateX: rotate,
           translateY: translate,
           transformStyle: "preserve-3d",
           transformOrigin: "top",
           opacity,
         }}
-        className="h-80 md:h-96 w-[32rem] absolute inset-0 bg-[#010101] rounded-2xl p-2"
+        className={cn(
+          "absolute inset-0 bg-[#010101] rounded-2xl p-2",
+          isMobile ? "h-[28rem]" : "h-96",
+          "w-[32rem]"
+        )}
       >
-        <div className="absolute inset-0 bg-[#272729] rounded-lg" />
-        <Image
-          src={src as string}
-          alt="Resume Preview"
-          fill
-          priority
-          className="object-contain absolute rounded-lg inset-0 h-full w-full p-2"
-          sizes="(max-width: 480px) 95vw, (max-width: 768px) 85vw, 70vw"
-        />
+        <div className="absolute inset-0 bg-[#272729] rounded-lg overflow-hidden">
+          <div className="relative w-full h-full">
+            <Image
+              src={src as string}
+              alt="Resume Preview"
+              fill
+              priority
+              className="object-contain p-2"
+              sizes={isMobile ? "100vw" : "(max-width: 768px) 85vw, 70vw"}
+              style={{
+                maxHeight: isMobile ? '100%' : 'none',
+                objectFit: 'contain'
+              }}
+            />
+          </div>
+        </div>
       </motion.div>
     </div>
   );
-};
+});
+Lid.displayName = "Lid";
 
 export const Trackpad = () => {
   return (

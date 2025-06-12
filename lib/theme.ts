@@ -23,10 +23,8 @@ export const theme = {
       text: "bg-gradient-to-br from-indigo-400 via-purple-600 to-pink-500"
     },
     background: {
-      dark: "#030014",  // Your dark background color
       grid: "rgba(99, 102, 241, 0.05)", // Grid line color
       glow: {
-        white: "rgba(255, 255, 255, 0.08)",
         purple: "rgba(139, 92, 246, 0.12)",
         blue: "rgba(59, 130, 246, 0.12)",
         pink: "rgba(236, 72, 153, 0.12)"
